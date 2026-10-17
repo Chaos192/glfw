@@ -1041,7 +1041,17 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
             // mouse icon change to a resize handle, but resizing still
             // works once you click and drag. This works on both
             // Windows 10 & 11, so we'll keep that for now.
-			requestedClientRect->top += 0; 
+			requestedClientRect->top += 0;
+
+			// Maximized, Windows places the frame (its thickness depends on the monitor's DPI) past the
+			// screen edges: keep the client area on the monitor's work area, or the custom titlebar's top
+			// and the window's edges are drawn off screen
+			if (IsZoomed(hWnd))
+			{
+				MONITORINFO mi = { sizeof(mi) };
+				if (GetMonitorInfoW(MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST), &mi))
+					*requestedClientRect = mi.rcWork;
+			} 
 
             // NOTE(Yan): seems to make no difference what we return here,
             //            was originally 0
